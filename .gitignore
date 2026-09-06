@@ -1,0 +1,55 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Visual Studio / .NET Core
+.vs/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.rsuser
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Env / Secrets
+.env
+.env.*
+
+# SQLite Database
+*.db
+*.db3
+*.sqlite
+*.sqlite3
+*-journal
+*-wal
+*-shm
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Build and Publish
+[Dd]ebug/
+[Rr]elease/
+publish/
