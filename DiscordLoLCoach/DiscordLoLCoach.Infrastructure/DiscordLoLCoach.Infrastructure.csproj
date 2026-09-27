@@ -9,4 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\DiscordLoLCoach.Application\DiscordLoLCoach.Application.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+  </ItemGroup>
 </Project>
