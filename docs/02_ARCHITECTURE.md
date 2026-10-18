@@ -77,5 +77,6 @@ The solution is divided into the following layers:
   - `ICommunicationConnectionService`: **Singleton** (long-lived service that maintains the WebSocket connection).
   - `ICommunicationContextService`: **Scoped** (isolated per incoming user message/interaction).
   - Business Handlers (`MessageBusinessLogic`): **Scoped** or **Transient**.
-- **CQRS Pattern (Optional but recommended):** Use MediatR in the Application layer to separate read (Query) and write (Command) operations for better organization of logic handlers.
-- **Asynchronous Programming:** Use `async/await` heavily.
+- **Asynchronous Programming & Naming Conventions:**
+  - Use `async/await` heavily for all I/O-bound operations.
+  - Every asynchronous method must strictly follow the `Async` suffix naming convention (e.g., `ProcessMessageAsync`, `SendAckAsync`, `GetProfileAsync`).

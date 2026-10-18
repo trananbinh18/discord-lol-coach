@@ -6,8 +6,8 @@ public static class ApplicationExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // TODO: Register Application layer services (e.g., MediatR handlers, Validators, etc.)
-        
+        // TODO: Register Application layer services (e.g., Business logic services, Validators, etc.)
+
         return services;
     }
 }
