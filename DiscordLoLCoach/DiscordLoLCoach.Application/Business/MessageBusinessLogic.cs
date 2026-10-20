@@ -16,6 +16,24 @@ public class MessageBusinessLogic
     }
 
     /// <summary>
+    /// Processes normal text messages mentioning the bot.
+    /// </summary>
+    public async Task ProcessNormalMessageAsync()
+    {
+        // For now just reply "Received your message."
+        await _contextService.SendOrUpdateResponseAsync("Received your message.");
+    }
+
+    /// <summary>
+    /// Processes the /ping slash command.
+    /// </summary>
+    public async Task ProcessSlashPingAsync()
+    {
+        // For now just reply "Pong"
+        await _contextService.SendOrUpdateResponseAsync("Pong");
+    }
+
+    /// <summary>
     /// Executes the primary business logic for the message encapsulated in the current communication context.
     /// </summary>
     public async Task ProcessMessageAsync()

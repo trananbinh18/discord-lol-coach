@@ -6,8 +6,10 @@ public static class ApplicationExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // TODO: Register Application layer services (e.g., Business logic services, Validators, etc.)
+        services.AddSingleton<Interfaces.IAppSetting, Services.AppSetting>();
+        services.AddScoped<Business.MessageBusinessLogic>();
 
         return services;
     }
 }
+

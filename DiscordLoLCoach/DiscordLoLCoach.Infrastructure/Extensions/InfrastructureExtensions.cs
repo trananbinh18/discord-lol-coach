@@ -6,8 +6,7 @@ public static class InfrastructureExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
-        // TODO: Register Infrastructure layer services (e.g., DbContext, Discord client, caching implementations)
-
+        // Future infrastructure services (persistence, caching, external MCP clients) will be registered here.
         return services;
     }
 }

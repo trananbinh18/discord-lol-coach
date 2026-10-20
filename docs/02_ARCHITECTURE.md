@@ -41,17 +41,22 @@ The solution is divided into the following layers:
 
 ### 3. Infrastructure Layer (`DiscordLoLCoach.Infrastructure`)
 - **Type**: Class Library (`Microsoft.NET.Sdk`)
-- **Responsibility**: Contains the implementations of the interfaces defined in the Application layer. This is where the code interacts with the outside world.
+- **Responsibility**: Contains data access, external integration, and infrastructure implementations for contracts defined in the Application layer.
 - **Implementations Include**:
-  - Discord.NET implementation of `ICommunicationConnectionService` (manages persistent WebSocket connection to Discord Gateway).
-  - Discord.NET implementation of `ICommunicationContextService` (scoped service managing message metadata and replying/editing messages in Discord channels).
   - SQLite DbContext implementation (`IApplicationDbContext`).
   - LocalInMemoryCache implementation (`ICacheMemory`).
   - MCP Client implementations (`IMCPOrchestrator`).
 
-### 4. Presentation / API Layer (`DiscordLoLCoach.API`)
-- **Type**: Web API (`Microsoft.NET.Sdk.Web`)
-- **Responsibility**: The entry point of the application. It configures Dependency Injection, sets up middleware, initializes long-lived services (e.g., `ICommunicationConnectionService` maintaining the Discord WebSocket connection), and exposes HTTP endpoints (health checks, monitoring).
+### 4. Presentation / Delivery Layer (`DiscordLoLCoach.API`)
+- **Type**: Web API / Host (`Microsoft.NET.Sdk.Web`)
+- **Responsibility**: The user-facing delivery mechanism and entry point of the application. In this architecture, Discord acts as the primary user interface and presentation layer (similar to HTTP controllers in web applications).
+- **Components & Implementations Include**:
+  - `DiscordConnectionService`: Concrete implementation of `ICommunicationConnectionService` managing the Discord WebSocket Gateway via `DiscordSocketClient` and `InteractionService`. Registered as a Singleton.
+  - `DiscordCommunicationContextService`: Concrete scoped implementation of `ICommunicationContextService` representing the message/interaction request context (analogous to `HttpContext`), handling typing indicators, immediate acknowledgments, and response delivery/edits.
+  - `DiscordEventHandler`: Presentation-layer event handler routing Discord gateway events (messages, slash command interactions) into application business logic within dedicated DI scopes.
+  - `DiscordSlashCommand`: Slash command interaction modules inheriting `InteractionModuleBase<SocketInteractionContext>`.
+  - `DiscordBotBackgroundService`: Hosted background service (`BackgroundService`) managing the lifecycle of the Discord bot connection.
+  - Configuration of Dependency Injection, hosting middleware, and optional HTTP endpoints (health checks, monitoring).
 
 ## 3. Technology Stack
 - **Language/Framework:** C# / .NET 9 Worker Service / ASP.NET Core
@@ -80,3 +85,22 @@ The solution is divided into the following layers:
 - **Asynchronous Programming & Naming Conventions:**
   - Use `async/await` heavily for all I/O-bound operations.
   - Every asynchronous method must strictly follow the `Async` suffix naming convention (e.g., `ProcessMessageAsync`, `SendAckAsync`, `GetProfileAsync`).
+
+## 6. Testing Architecture (`DiscordLoLCoach.Tests`)
+All tests reside in `DiscordLoLCoach.Tests` and are driven strictly by the boundaries defined in `DiscordLoLCoach.Application`. Follow these two distinct testing strategies:
+
+### 6.1. Business Logic Unit Tests (`Tests/Business/`)
+- **Target**: Classes in `DiscordLoLCoach.Application/Business/` (e.g., `MessageBusinessLogic`).
+- **Rule**: Test business orchestration, branching, validation, and error handling in isolation.
+- **Mocking**: Mock **all** dependencies (`ICacheMemory`, `IMCPOrchestrator`, `IAgentService`, `ICommunicationContextService`, `IApplicationDbContext`) using `NSubstitute`. Never use real databases, networks, or Discord gateways.
+
+### 6.2. Service Interface Contract Tests (`Tests/Services/`)
+- **Target**: Interfaces in `DiscordLoLCoach.Application/Interfaces/` and their concrete implementations in `Infrastructure` and `API`.
+- **Rule**: Use xUnit **Abstract Test Class Inheritance** so interface assertions are written once. Swapping or adding implementations (e.g., `SQLite` to `SQL Server`/`PostgreSQL`, `LocalInMemoryCache` to `Redis`) must only require a new child class for setup/teardown—never modifying contract tests.
+- **Structure & Naming Pattern** (enforces alphabetical IDE sorting: `Contract_` above `Specific_`):
+  1. **Base Contract (`Tests/Services/Contracts/<InterfaceName>ContractTests.cs`)**:
+     - `public abstract class` (implementing `IAsyncLifetime` if needed) exposing `protected abstract Task<TInterface> CreateSutAsync();`.
+     - **Contract Tests (`Contract_` Prefix)**: All `[Fact]`/`[Theory]` methods here test strictly via `TInterface` and MUST use the `Contract_` prefix (e.g., `Contract_DiscordSettings_IsNotNull`, `Contract_InitialState_PropertiesAreNullOrZero`).
+  2. **Concrete Implementation (`Tests/Services/Implementations/<ImplName>Tests.cs`)**:
+     - Inherits `<InterfaceName>ContractTests`, handles provider initialization (e.g., in-memory SQLite, Testcontainers, or mocked HTTP/Discord transports), and overrides `CreateSutAsync()`.
+     - **Implementation-Specific Tests (`Specific_` Prefix)**: Optional tests for provider-specific behaviors outside the contract (e.g., config binding, transport lifecycle, parameter guards) MUST use the `Specific_` prefix (e.g., `Specific_AppSetting_AllowServerIds_NullOrEmptyOrBlank_AllowsAllServers`, `Specific_InitializeForMessage_WithNullMessage_ThrowsArgumentNullException`).
